@@ -1,10 +1,10 @@
 fibo = (n) => n === 1 || n === 2 ? 1 : fibo(n - 2) + fibo(n - 1);
-let cash = [];
+let cache = [];
 memorizedFibo = function (n) {
-    if (cash.length !== 0) {
-        for (let i = 0; i < cash.length; i++) {
-            if (cash[i].params === n) {
-                return cash[i].result;
+    if (cache.length !== 0) {
+        for (let i = 0; i < cache.length; i++) {
+            if (cache[i].params === n) {
+                return cache[i].result;
             }
         }
     }
@@ -14,7 +14,7 @@ memorizedFibo = function (n) {
     } else {
         result = memorizedFibo(n-2) + memorizedFibo(n-2);
     }
-    cash.push({
+    cache.push({
         params: n,
         result
     });
