@@ -1,5 +1,5 @@
 const memo = (fn) => {
-    let cash = []; // 初始化缓存空间
+    let cache = []; // 初始化缓存空间
 
     // 判断是不是递归函数
     let fnString = fn.toString();
@@ -17,19 +17,19 @@ const memo = (fn) => {
         let reg3String = `function ${fn.name}\\(.*\\) \\{`;
         let reg3 = new RegExp(reg3String);
         let memorizedRecursionString = fnString.replace(reg3, `$&
-            if (cash.length !== 0) {
-                for (let i = 0; i < cash.length; i++) {
-                    if (cash[i].params.length !== arguments.length) {
+            if (cache.length !== 0) {
+                for (let i = 0; i < cache.length; i++) {
+                    if (cache[i].params.length !== arguments.length) {
                         continue;
                     } else {
                         let j = 0;
                         for (; j < arguments.length; j++) {
-                            if (cash[i].params[j] !== arguments[j]) {
+                            if (cache[i].params[j] !== arguments[j]) {
                                 break;
                             }
                         }
                         if (j === arguments.length) {
-                            return cash[i].result;
+                            return cache[i].result;
                         }
                     }
                 }
@@ -42,29 +42,30 @@ const memo = (fn) => {
         console.log('is not');
     }
 
+    let cache = []; // 初始化缓存空间
     return function(...args) {
-        if (cash.length !== 0) {
-            for (let i = 0; i < cash.length; i++) {
-                // 如果 cash[i] 中的参数长度和此次函数调用的参数的长度不相等，就没必要再比较具体参数
-                if (cash[i].params.length !== args.length) {
+        if (cache.length !== 0) {
+            for (let i = 0; i < cache.length; i++) {
+                // 如果 cache[i] 中的参数长度和此次函数调用的参数的长度不相等，就没必要再比较具体参数
+                if (cache[i].params.length !== args.length) {
                     continue;
                 } else {
                     let j = 0;
                     for (; j < args.length; j++) {
-                        if (cash[i].params[j] !== args[j]) {
+                        if (cache[i].params[j] !== args[j]) {
                             break;
                         }
                     }
                     // 如果上面循环中每次参数比较都相等，就直接返回结果
                     if (j === args.length) {
-                        return cash[i].result;
+                        return cache[i].result;
                     }
                 }
             }
         }
         // 运行到此处说明此次调用是一个新参数列表
         let result = fn.apply(this, args);
-        cash.push({
+        cache.push({
             params: args,
             result
         });
