@@ -1,16 +1,16 @@
 const memo = (fn) => {
     let cache = []; // 初始化缓存空间
 
-    // 判断是不是递归函数
-    let fnString = fn.toString();
+    let fnString = fn.toString(); // 返回一个表示当前函数源代码的字符串
     let reg1 = /^function (.+)\(/;
-    // 没有匹配到函数函数表达式
+
     if (reg1.exec(fnString) === null) {
+        // 没有匹配到函数函数表达式
         throw Error('fn is not a function');
     }
 
     let functionName = reg1.exec(fnString)[1]; // 返回 reg1 的第一个分组，也就是函数名
-    let reg2String = `(${functionName}\\()|(${functionName}\\.call\\()|(${functionName}\\.apply\\()`;
+    let reg2String = `(${functionName}\\()|(${functionName}\\.call\\()|(${functionName}\\.apply\\()`; // 第一个 \ 为了在字符串中转义后面的 \ ，第二个 \ 为了在正则表达式中转义后面的 (
     let reg2 = new RegExp(reg2String, 'g'); // 全局匹配 "fn( | fn.call( | fn.apply(" 的正则
     if (reg2.exec(fnString) && reg2.exec(fnString) !== null) { // 连续执行两次 exec，第一次匹配的是函数名，第二次匹配的是方法中的递归调用
         // 是递归
@@ -35,14 +35,13 @@ const memo = (fn) => {
                 }
             }
         `);
-        memorizedRecursion = new Function(memorizedRecursionString);
+        let memorizedRecursion = new Function(memorizedRecursionString);
         return memorizedRecursion;
     } else {
         // 不是递归
         console.log('is not');
     }
 
-    let cache = []; // 初始化缓存空间
     return function(...args) {
         if (cache.length !== 0) {
             for (let i = 0; i < cache.length; i++) {

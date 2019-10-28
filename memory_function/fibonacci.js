@@ -12,7 +12,7 @@ memorizedFibo = function (n) {
     if (n === 1 || n === 2) {
         result = 1;
     } else {
-        result = memorizedFibo(n-2) + memorizedFibo(n-2);
+        result = memorizedFibo(n-2) + memorizedFibo(n-1);
     }
     cache.push({
         params: n,
@@ -21,8 +21,8 @@ memorizedFibo = function (n) {
     return result
 };
 console.time('不记忆化的 Fibo');
-fibo(42);
+console.log(fibo(42));
 console.timeEnd('不记忆化的 Fibo');
 console.time('记忆化的 Fibo');
-memorizedFibo(42);
+console.log(memorizedFibo(42));
 console.timeEnd('记忆化的 Fibo');
