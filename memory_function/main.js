@@ -1,6 +1,4 @@
 const memo = (fn) => {
-    let cache = []; // 初始化缓存空间
-
     let fnString = fn.toString(); // 返回一个表示当前函数源代码的字符串
     let reg1 = /^function\s*(\w+)\s*\(/;
 
@@ -14,40 +12,54 @@ const memo = (fn) => {
     let reg2 = new RegExp(reg2String, 'g'); // 全局匹配 "fn( | fn.call( | fn.apply(" 的正则
     if (reg2.exec(fnString) && reg2.exec(fnString) !== null) { // 连续执行两次 exec，第一次匹配的是函数名，第二次匹配的是方法中的递归调用
         // 是递归
-        let reg3String = `function ${fn.name}\\s*\\(.*\\)\\s*\\{`;
+        let reg3String = `function ${fn.name}\\s*\\(\\w*\\)\\s*\\{`;
         let reg3 = new RegExp(reg3String);
-        let memorizedRecursionString = fnString.replace(reg3, `$&
+        let memorizedFuncString = fnString.replace(reg3, `$&
+        let cache = []; // 初始化缓存空间
+        return function(...args) {
+            
             if (cache.length !== 0) {
                 for (let i = 0; i < cache.length; i++) {
-                    if (cache[i].params.length !== arguments.length) {
+                    // 如果 cache[i] 中的参数长度和此次函数调用的参数的长度不相等，就没必要再比较具体参数
+                    if (cache[i].params.length !== args.length) {
                         continue;
                     } else {
                         let j = 0;
-                        for (; j < arguments.length; j++) {
-                            if (cache[i].params[j] !== arguments[j]) {
+                        for (; j < args.length; j++) {
+                            if (cache[i].params[j] !== args[j]) {
                                 break;
                             }
                         }
-                        if (j === arguments.length) {
+                        // 如果上面循环中每次参数比较都相等，就直接返回结果
+                        if (j === args.length) {
                             return cache[i].result;
                         }
                     }
                 }
             }
+            // 运行到此处说明此次调用是一个新参数列表
+            let result = fn.apply(this, args);
+            cache.push({
+                params: args,
+                result
+            });
+            return result
         `);
         let MemoFuncParams = [];
         fn.arguments.forEach(function(arg){
             MemoFuncParams.push(arg)
         });
-        MemoFuncParams.push(memorizedRecursionString);
-        let memorizedRecursion = new Function(...arguments, memorizedRecursionString);
+        MemoFuncParams.push(memorizedFuncString);
+        let memorizedRecursion = new Function(...arguments, memorizedFuncString);
         return memorizedRecursion;
     } else {
         // 不是递归
         console.log('is not');
     }
 
+    let cache = []; // 初始化缓存空间
     return function(...args) {
+
         if (cache.length !== 0) {
             for (let i = 0; i < cache.length; i++) {
                 // 如果 cache[i] 中的参数长度和此次函数调用的参数的长度不相等，就没必要再比较具体参数
