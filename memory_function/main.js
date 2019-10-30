@@ -6,7 +6,7 @@ const memo = (fn) => {
 
     let cache = []; // 初始化缓存空间
     let fnCallingMemo; // fn 是递归 ? 一个函数 : undefined
-    let checkCache = function(...args) {
+    const checkCache = function(...args) {
         console.log('call checkCache');
         if (cache.length !== 0) {
             for (let i = 0; i < cache.length; i++) {
@@ -58,18 +58,25 @@ const memo = (fn) => {
         const callingReg2 = new RegExp(callingRegString, 'g');
         let resultArr;
         while((resultArr = callingReg2.exec(memorizedFuncString)) !== null) {
-            let firstStr = memorizedFuncString.substring(0, resultArr.index - 1);
-            let endStr = memorizedFuncString.substring(resultArr.index + resultArr[1].length);
-            memorizedFuncString = firstStr + resultArr[1] + endStr;
+            let firstStr = memorizedFuncString.substring(0, resultArr.index + 1);
+            let endStr = memorizedFuncString.substring(resultArr.index + 1 + resultArr[1].length);
+            memorizedFuncString = firstStr + 'checkCache' + endStr;
+            callingReg2.lastIndex = resultArr.index + 'checkCache'.length;
         }
         let MemoFuncParams = [];
         functionParams.split(/\s*,\s*/).forEach(function(args){
             MemoFuncParams.push(args)
         });
-        MemoFuncParams[0] === ''
-            ? MemoFuncParams = [memorizedFuncString]
-            : MemoFuncParams.push(memorizedFuncString);
-        fnCallingMemo = new Function(...MemoFuncParams);
+        return function() {
+            arguments.forEach(function(arg){
+
+            })
+            MemoFuncParams[0] === ''
+                ? MemoFuncParams = [memorizedFuncString]
+                : MemoFuncParams.push(memorizedFuncString);
+            fnCallingMemo = new Function(...MemoFuncParams);
+            this.fnCallingMemo(...arguments)
+        };
         return fnCallingMemo;
     } else {
         // 不是递归
