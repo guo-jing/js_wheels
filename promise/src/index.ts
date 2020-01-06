@@ -8,13 +8,21 @@ class P {
 
     successFns = [];
     failFns = [];
+    promises = [];
     state = 'pending';
 
     resolve(arg) {
         setTimeout(() => {
             if (this.state === 'pending' && this.successFns.length > 0) {
-                this.successFns.forEach(success => {
-                    success.call(undefined, arg);
+                this.successFns.forEach((success, index) => {
+                    let result;
+                    try {
+                        result = success.call(undefined, arg);
+                    } catch(e) {
+                        this.promises[index].reject(e);
+                        return;
+                    }
+                    this.promises[index].resolveWith(result);
                 });
                 this.state = 'fulfilled';
             }
@@ -24,8 +32,15 @@ class P {
     reject(arg) {
         setTimeout(() => {
             if (this.state === 'pending' && this.failFns.length > 0) {
-                this.failFns.forEach(fail => {
-                    fail.call(undefined, arg)
+                this.failFns.forEach((fail, index) => {
+                    let result;
+                    try {
+                        result = fail.call(undefined, arg);
+                    } catch(e) {
+                        this.promises[index].reject(e);
+                        return;
+                    }
+                    this.promises[index].resolveWith(result);
                 });
                 this.state = 'rejected';
             }
@@ -35,7 +50,12 @@ class P {
     then(success, fail) {
         if (typeof success === 'function') this.successFns.push(success);
         if (typeof fail === 'function') this.failFns.push(fail);
+        this.promises.push(new P(() => {}));
         return new P(() => {});
+    }
+
+    resolveWith(result) {
+
     }
 }
 

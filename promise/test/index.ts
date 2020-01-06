@@ -160,9 +160,87 @@ describe('Promise2', function(){
         })
     });
 
+    it('如果/当 promise 完成执行（fulfilled）,各个相应的onFulfilled回调 必须根据最原始的then 顺序来调用', done => {
+        const success1 = sinon.fake();
+        const success2 = sinon.fake();
+        const success3 = sinon.fake();
+        const p = new Promise2(resolve => {
+            resolve();
+        });
+        p.then(success1);
+        p.then(success2);
+        p.then(success3);
+        setTimeout(() => {
+            assert(success1.called);
+            assert(success2.called);
+            assert(success3.called);
+            assert(success2.calledAfter(success1));
+            assert(success3.calledAfter(success2));
+            done();
+        });
+    });
+
+    it('如果/当 promise 被拒绝（rejected）,各个相应的onRejected回调 必须根据最原始的then 顺序来调用', done => {
+        const fail1 = sinon.fake();
+        const fail2 = sinon.fake();
+        const fail3 = sinon.fake();
+        const p = new Promise2((resolve, reject) => {
+           reject();
+        });
+        p.then(null, fail1);
+        p.then(null, fail2);
+        p.then(null, fail3);
+        setTimeout(() => {
+            assert(fail1.called);
+            assert(fail2.called);
+            assert(fail3.called);
+            assert(fail2.calledAfter(fail1));
+            assert(fail3.calledAfter(fail2));
+            done();
+        });
+    });
+
     it('then 必须返回一个 Promise', function() {
-        const p1 = new Promise2(() => {});
+        const p1 = new Promise2(done => {});
         const p2 = p1.then();
         assert(p2 instanceof Promise2);
     });
+
+    it('如果onFulfilled抛出一个异常e,promise2 必须被拒绝（rejected）并把e当作原因', done => {
+        const p1 = new Promise2(resolve => {
+            resolve();
+        });
+        const error = new Error();
+        const p1Success = () => {
+            throw error
+        };
+        const p2 = p1.then(p1Success);
+        const p2Success = sinon.fake();
+        const p2Fail = sinon.fake();
+        p2.then(p2Success, p2Fail);
+        setTimeout(() => {
+            p2Success.notCalled;
+            p2Fail.calledOnceWith(error);
+            done();
+        })
+    });
+
+    it('如果onRejected抛出一个异常e,promise2 必须被拒绝（rejected）并把e当作原因', done => {
+        const p1 = new Promise2((resolve, reject) => {
+            reject();
+        });
+        const error = new Error();
+        const p1Fail = () => {
+            throw error
+        };
+        const p2 = p1.then(null, p1Fail);
+        const p2Success = sinon.fake();
+        const p2Fail = sinon.fake();
+        p2.then(p2Success, p2Fail);
+        setTimeout(() => {
+            p2Success.notCalled;
+            p2Fail.calledOnceWith(error);
+            done();
+        })
+    })
 });
